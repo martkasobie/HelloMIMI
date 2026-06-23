@@ -275,7 +275,6 @@
             gameRunning = false;
             finalScoreText.innerText = "Puntos obtenidos: " + happinessPoints;
             
-            // --- NOWE PROGI PUNKTOWE ---
             let message = "";
             if (happinessPoints <= 60) {
                 message = "¡Ánimo! Una pequeña chispa de alegría está por comenzar.";
@@ -284,7 +283,6 @@
             } else if (happinessPoints >= 150 && happinessPoints <= 300) {
                 message = "Sonrisa sincera. La alegría es plena y visible. ¡Los ojos empiezan a brillar!";
             } else { 
-                // Powyżej 300 punktów
                 message = "¡Resplandeces! Eres un sol andante. Una sonrisa de oreja a oreja, y el mundo alrededor empieza a volverse colorido.";
             }
             
@@ -362,9 +360,10 @@
             const size = minSize + Math.random() * (maxSize - minSize);
             const randomX = Math.random() * (canvas.width - size);
             
-            const speed = canvas.height * 0.0085 + (Math.random() * 3); 
+            // ZMIANA: Zmniejszono prędkość spadania (wolniejsze tempo)
+            const speed = canvas.height * 0.006 + (Math.random() * 2.5); 
             
-            const isLeaf = Math.random() < 0.25; // 25% szans na listek
+            const isLeaf = Math.random() < 0.25; 
             let itemType = isLeaf ? 'leaf' : 'orange';
             let specificImage = null;
 
@@ -414,7 +413,8 @@
 
             spawnTimer += deltaTime;
             
-            if (spawnTimer > 550) {
+            // ZMIANA: Lekkie opóźnienie spawnowania (600ms zamiast 550ms)
+            if (spawnTimer > 600) {
                 spawnItem();
                 spawnTimer = 0;
             }
