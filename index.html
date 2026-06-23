@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -135,7 +135,7 @@
 
     <div id="ui">
         PUNTOS DE FELICIDAD MIMI: <span id="score">0</span><br>
-        <span id="missedText">Naranjas perdidas: <span id="missedCount">0</span>/1</span>
+        <span id="missedText">Naranjas perdidas: <span id="missedCount">0</span>/3</span>
     </div>
     
     <canvas id="gameCanvas"></canvas>
@@ -362,7 +362,8 @@
             
             const speed = canvas.height * 0.0085 + (Math.random() * 3); 
             
-            const isLeaf = Math.random() < 0.40;
+            // ZMIANA: Mniej listków (25% szans). Skoro zabijają na miejscu, musi być więcej pomarańczy
+            const isLeaf = Math.random() < 0.25;
             let itemType = isLeaf ? 'leaf' : 'orange';
             let specificImage = null;
 
@@ -421,24 +422,36 @@
                 let item = fallingItems[i];
                 item.y += item.speed;
 
-                // Kolizja z graczem
-                if (item.x < player.x + player.width &&
-                    item.x + item.width > player.x &&
-                    item.y < player.y + player.height &&
-                    item.height + item.y > player.y) {
+                // --- ZMIANA: ZACIEŚNIONE, UCZCIWE HITBOXY (KOLIZJE) ---
+                // Tworzymy mniejszy, precyzyjny prostokąt kolizji wewnątrz samej postaci (bez pustych pikseli)
+                let px = player.x + (player.width * 0.2); // Ucinamy 20% szerokości po bokach
+                let py = player.y + (player.height * 0.1); // Ucinamy 10% wysokości od góry
+                let pw = player.width * 0.6; // Szerokość do wykrywania stłuczki
+                let ph = player.height * 0.8;
+
+                // Precyzyjny hitbox dla pomarańczy/listków
+                let ix = item.x + (item.width * 0.2);
+                let iy = item.y + (item.height * 0.2);
+                let iw = item.width * 0.6;
+                let ih = item.height * 0.6;
+
+                // Sprawdzenie "uczciwej" kolizji wizualnej
+                if (ix < px + pw &&
+                    ix + iw > px &&
+                    iy < py + ph &&
+                    ih + iy > py) {
                     
                     if (item.type === 'orange') {
                         happinessPoints++;
+                        scoreElement.innerText = happinessPoints;
+                        fallingItems.splice(i, 1);
+                        i--;
+                        continue;
                     } else if (item.type === 'leaf') {
-                        happinessPoints--;
-                        if (happinessPoints < 0) happinessPoints = 0;
+                        // ZMIANA: Dotknięcie listka to NATYCHMIASTOWY Game Over
+                        gameOver();
+                        return; // Przerywa dalsze wykonywanie kodu
                     }
-
-                    scoreElement.innerText = happinessPoints;
-                    
-                    fallingItems.splice(i, 1);
-                    i--;
-                    continue;
                 }
 
                 // Przedmiot spada poza ekran na dole
@@ -447,9 +460,10 @@
                         missedOranges++;
                         missedCountElement.innerText = missedOranges;
                         
-                        // ZMIANA: Game Over natychmiast po 1 zgubionej pomarańczy
-                        if (missedOranges >= 1) {
+                        // ZMIANA: Game Over dopiero po upuszczeniu 3 pomarańczy
+                        if (missedOranges >= 3) {
                             gameOver();
+                            return;
                         }
                     }
                     
