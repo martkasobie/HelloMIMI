@@ -28,7 +28,7 @@
         }
         #missedText {
             font-size: 20px;
-            color: #d32f2f; /* Czerwony kolor dla ostrzeżenia */
+            color: #d32f2f; 
             text-shadow: 1px 1px 0px white, -1px -1px 0px white, 1px -1px 0px white, -1px 1px 0px white;
         }
 
@@ -75,7 +75,6 @@
             transform: scale(0.95); 
         }
 
-        /* Większe napisy na telefonach */
         @media (max-width: 600px) {
             #ui { font-size: 22px; top: 15px; left: 15px; }
             #missedText { font-size: 18px; }
@@ -137,7 +136,6 @@
             playerWalkFrames[index].src = src;
         });
 
-        // Ładowanie obrazków listków
         const leafImages = [];
         const leafSources = ["LISTKI.png", "listek1.png", "listek2.png"];
         
@@ -170,7 +168,7 @@
             draw(); 
         };
 
-        // --- INTELIGENTNA RESPONSYWNOŚĆ ---
+        // --- INTELIGENTNA RESPONSYWNOŚĆ (Powiększone o 20%) ---
         function resize() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
@@ -180,13 +178,13 @@
                 aspectRatio = playerIdleImage.naturalWidth / playerIdleImage.naturalHeight;
             }
 
-            // --- ZMIANA: Postać zajmuje do 30% wysokości ekranu, max 350px ---
-            let newHeight = Math.min(canvas.height * 0.30, 350);
+            // Postać zajmuje do 35% wysokości ekranu, max 380px
+            let newHeight = Math.min(canvas.height * 0.35, 380);
             let newWidth = newHeight * aspectRatio;
 
-            // --- ZMIANA: Na telefonie postać zajmie max 30% szerokości ekranu (znacznie mniej niż poprzednio) ---
-            if (newWidth > canvas.width * 0.30) {
-                newWidth = canvas.width * 0.30;
+            // ZMIANA: Na telefonie postać zajmie max 36% szerokości (20% więcej niż 30%)
+            if (newWidth > canvas.width * 0.36) {
+                newWidth = canvas.width * 0.36;
                 newHeight = newWidth / aspectRatio;
             }
 
@@ -195,7 +193,6 @@
             player.speed = canvas.width * 0.015; 
 
             if (player.height > 0) {
-                // Postać stoi odrobinę wyżej (5% wysokości ekranu) od dołu
                 player.y = canvas.height - player.height - (canvas.height * 0.05); 
             }
             
@@ -210,7 +207,7 @@
         player.x = window.innerWidth / 2;
         resize();
 
-        // --- OBSŁUGA EKRANÓW (START I GAME OVER) ---
+        // --- OBSŁUGA EKRANÓW ---
         const startScreen = document.getElementById("startScreen");
         const gameOverScreen = document.getElementById("gameOverScreen");
         const startButton = document.getElementById("startButton");
@@ -220,7 +217,6 @@
             startScreen.style.display = "none"; 
             gameOverScreen.style.display = "none";
             
-            // Resetowanie statystyk
             happinessPoints = 0;
             missedOranges = 0;
             fallingItems = [];
@@ -248,7 +244,7 @@
         startButton.addEventListener("click", startGame);
         restartButton.addEventListener("click", startGame);
 
-        // --- STEROWANIE TYLKO PO DOTKNIĘCIU POSTACI ---
+        // --- STEROWANIE ---
         function isTouchingPlayer(clickX) {
             return (clickX >= player.x && clickX <= player.x + player.width);
         }
@@ -306,19 +302,18 @@
 
         // --- LOGIKA GRY ---
         function spawnItem() {
-            // --- ZMIANA: Zmniejszone przedmioty (zajmujące od 8 do 12% szerokości ekranu) ---
-            let minSize = canvas.width * 0.08; 
-            let maxSize = canvas.width * 0.12; 
+            // ZMIANA: Powiększone o 20% przedmioty (od 10% do 14% szerokości ekranu)
+            let minSize = canvas.width * 0.10; 
+            let maxSize = canvas.width * 0.14; 
 
-            // --- ZMIANA: Mniejsze bezpieczne limity w pikselach (od 40 do 80px) ---
-            minSize = Math.max(Math.min(minSize, 60), 40); 
-            maxSize = Math.max(Math.min(maxSize, 100), 60);
+            // ZMIANA: Powiększone o 20% limity pikselowe (od ok. 48 do 120px)
+            minSize = Math.max(Math.min(minSize, 70), 48); 
+            maxSize = Math.max(Math.min(maxSize, 120), 72);
 
             const size = minSize + Math.random() * (maxSize - minSize);
             const randomX = Math.random() * (canvas.width - size);
             const speed = canvas.height * 0.006 + (Math.random() * 2); 
             
-            // Losowanie: 55% szans na pomarańczę, 45% na listek
             const isLeaf = Math.random() < 0.45;
             let itemType = isLeaf ? 'leaf' : 'orange';
             let specificImage = null;
@@ -399,12 +394,10 @@
 
                 // Przedmiot spada poza ekran na dole
                 if (item.y > canvas.height) {
-                    // Jeśli to była pomarańcza i uciekła, tracimy życie!
                     if (item.type === 'orange') {
                         missedOranges++;
                         missedCountElement.innerText = missedOranges;
                         
-                        // Sprawdzanie Game Over
                         if (missedOranges >= 4) {
                             gameOver();
                         }
