@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="pl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -58,19 +58,33 @@
             line-height: 1.5;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
-        
-        /* POPRAWKA: Blok tekstu dedykowany specjalnie dla rankingu */
+
+        /* --- WYRAŹNA TABELKA RANKINGU --- */
+        .rankingBox {
+            background-color: rgba(0, 0, 0, 0.4); 
+            border: 3px solid #FF69B4; 
+            border-radius: 15px;
+            padding: 20px;
+            max-width: 90%;
+            width: 550px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+        }
+        .rankingTitle {
+            font-size: 18px;
+            color: #FFD700; 
+            margin-bottom: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
         #rankingText {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: bold;
             font-style: italic;
-            color: #FFE4E1; /* Piękny jasnoróżowy kolor na fioletowym tle */
-            max-width: 580px;
-            margin-top: 10px;
-            margin-bottom: 40px;
-            line-height: 1.6;
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
-            display: block; /* Gwarancja, że element jest widoczny */
+            color: #FFF; 
+            line-height: 1.5;
+            margin: 0;
         }
 
         .gameButton {
@@ -94,7 +108,8 @@
             #ui { font-size: 22px; top: 15px; left: 15px; }
             #missedText { font-size: 18px; }
             .startMessage { font-size: 22px; padding: 0 10px; margin-bottom: 15px; }
-            #rankingText { font-size: 19px; max-width: 90%; margin-bottom: 30px; }
+            .rankingBox { padding: 15px; }
+            #rankingText { font-size: 18px; }
             .gameButton { font-size: 24px; padding: 15px 35px; }
         }
     </style>
@@ -108,14 +123,19 @@
 
     <div id="gameOverScreen" style="display: none;">
         <p class="startMessage" style="color: #FFB6C1; font-size: 38px; text-shadow: 2px 2px 0px #000; margin-bottom: 5px;">FIN DEL JUEGO</p>
-        <p class="startMessage" id="finalScoreText">Puntos obtenidos: 0</p>
-        <div id="rankingText"></div>
+        <p class="startMessage" id="finalScoreText" style="margin-bottom: 15px;">Puntos obtenidos: 0</p>
+        
+        <div class="rankingBox">
+            <div class="rankingTitle">Nivel de felicidad</div>
+            <div id="rankingText"></div>
+        </div>
+
         <button id="restartButton" class="gameButton">VOLVER A JUGAR</button>
     </div>
 
     <div id="ui">
         PUNTOS DE FELICIDAD MIMI: <span id="score">0</span><br>
-        <span id="missedText">Naranjas perdidas: <span id="missedCount">0</span>/2</span>
+        <span id="missedText">Naranjas perdidas: <span id="missedCount">0</span>/1</span>
     </div>
     
     <canvas id="gameCanvas"></canvas>
@@ -255,7 +275,6 @@
             gameRunning = false;
             finalScoreText.innerText = "Puntos obtenidos: " + happinessPoints;
             
-            // AKTUALIZACJA: Logika wstrzykiwania tekstu działa teraz poprawnie z nowym CSS
             let message = "";
             if (happinessPoints < 100) {
                 message = "¡Ánimo! Una pequeña chispa de alegría está por comenzar.";
@@ -343,7 +362,7 @@
             
             const speed = canvas.height * 0.0085 + (Math.random() * 3); 
             
-            const isLeaf = Math.random() < 0.60;
+            const isLeaf = Math.random() < 0.40;
             let itemType = isLeaf ? 'leaf' : 'orange';
             let specificImage = null;
 
@@ -392,7 +411,8 @@
             if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
 
             spawnTimer += deltaTime;
-            if (spawnTimer > 700) {
+            
+            if (spawnTimer > 550) {
                 spawnItem();
                 spawnTimer = 0;
             }
@@ -427,7 +447,8 @@
                         missedOranges++;
                         missedCountElement.innerText = missedOranges;
                         
-                        if (missedOranges >= 2) {
+                        // ZMIANA: Game Over natychmiast po 1 zgubionej pomarańczy
+                        if (missedOranges >= 1) {
                             gameOver();
                         }
                     }
