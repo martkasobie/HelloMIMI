@@ -26,15 +26,21 @@
             text-shadow: 2px 2px 0px white, -2px -2px 0px white, 2px -2px 0px white, -2px 2px 0px white;
             z-index: 10;
         }
+        #missedText {
+            font-size: 20px;
+            color: #d32f2f; /* Czerwony kolor dla ostrzeżenia */
+            text-shadow: 1px 1px 0px white, -1px -1px 0px white, 1px -1px 0px white, -1px 1px 0px white;
+        }
 
-        /* --- STYL EKRANU STARTOWEGO --- */
-        #startScreen {
+        /* --- STYL EKRANU STARTOWEGO I GAME OVER --- */
+        #startScreen, #gameOverScreen {
             position: absolute;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            background-color: rgba(135, 206, 235, 0.95); 
+            /* Zmiana na fioletowe, lekko przezroczyste tło */
+            background-color: rgba(155, 89, 182, 0.95); 
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -46,17 +52,19 @@
         }
         .startMessage {
             font-size: 26px;
-            color: #333;
+            /* Zmiana koloru tekstu na biały, by lepiej wyglądał na fiolecie */
+            color: #ffffff; 
             max-width: 650px;
             margin-bottom: 40px;
             font-weight: bold;
             line-height: 1.5;
-            text-shadow: 1px 1px 0px white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
-        #startButton {
+        .gameButton {
             font-size: 32px;
             padding: 15px 50px;
-            background-color: #FFA500; 
+            /* Zmiana na różowy przycisk */
+            background-color: #FF69B4; 
             color: white;
             border: 3px solid #fff;
             border-radius: 15px;
@@ -66,15 +74,16 @@
             box-shadow: 0 6px 10px rgba(0,0,0,0.2);
             transition: transform 0.1s;
         }
-        #startButton:active {
+        .gameButton:active {
             transform: scale(0.95); 
         }
 
         /* Większe napisy na telefonach */
         @media (max-width: 600px) {
             #ui { font-size: 22px; top: 15px; left: 15px; }
+            #missedText { font-size: 18px; }
             .startMessage { font-size: 22px; padding: 0 10px; }
-            #startButton { font-size: 28px; padding: 15px 45px; }
+            .gameButton { font-size: 24px; padding: 15px 35px; }
         }
     </style>
 </head>
@@ -82,10 +91,19 @@
     
     <div id="startScreen">
         <p class="startMessage">"Know that the universe is listening to you. Whenever you feel down, I hope you return to these words to remember that, and let this app lift your spirits"</p>
-        <button id="startButton">START</button>
+        <button id="startButton" class="gameButton">START</button>
     </div>
 
-    <div id="ui">PUNTOS DE FELICIDAD MIMI: <span id="score">0</span></div>
+    <div id="gameOverScreen" style="display: none;">
+        <p class="startMessage" style="color: #FFB6C1; font-size: 36px; text-shadow: 2px 2px 0px #000;">GAME OVER</p>
+        <p class="startMessage" id="finalScoreText">Puntos obtenidos: 0</p>
+        <button id="restartButton" class="gameButton">VOLVER A JUGAR</button>
+    </div>
+
+    <div id="ui">
+        PUNTOS DE FELICIDAD MIMI: <span id="score">0</span><br>
+        <span id="missedText">Naranjas perdidas: <span id="missedCount">0</span>/4</span>
+    </div>
     
     <canvas id="gameCanvas"></canvas>
 
@@ -93,14 +111,18 @@
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
         const scoreElement = document.getElementById("score");
+        const missedCountElement = document.getElementById("missedCount");
+        const finalScoreText = document.getElementById("finalScoreText");
 
         let happinessPoints = 0;
-        let oranges = [];
+        let missedOranges = 0; 
+        let fallingItems = []; 
         let lastTime = 0;
         let spawnTimer = 0;
         let gameRunning = false; 
+        let isDragging = false;
 
-        // Grafiki
+        // --- GRAFIKI ---
         const orangeImage = new Image();
         orangeImage.src = "naranja1.png"; 
 
@@ -116,6 +138,15 @@
         walkFrameSources.forEach((src, index) => {
             playerWalkFrames[index] = new Image();
             playerWalkFrames[index].src = src;
+        });
+
+        // Ładowanie obrazków listków
+        const leafImages = [];
+        const leafSources = ["LISTKI.png", "listek1.png", "listek2.png"];
+        
+        leafSources.forEach((src, index) => {
+            leafImages[index] = new Image();
+            leafImages[index].src = src;
         });
 
         // --- POSTAĆ ---
@@ -152,11 +183,9 @@
                 aspectRatio = playerIdleImage.naturalWidth / playerIdleImage.naturalHeight;
             }
 
-            // Postać może zająć do 35% wysokości ekranu, max 350px (znacznie więcej niż poprzednio)
             let newHeight = Math.min(canvas.height * 0.35, 350);
             let newWidth = newHeight * aspectRatio;
 
-            // Na telefonie postać zajmie aż 55% szerokości ekranu!
             if (newWidth > canvas.width * 0.55) {
                 newWidth = canvas.width * 0.55;
                 newHeight = newWidth / aspectRatio;
@@ -164,7 +193,6 @@
 
             player.height = newHeight;
             player.width = newWidth;
-            
             player.speed = canvas.width * 0.015; 
 
             if (player.height > 0) {
@@ -182,21 +210,88 @@
         player.x = window.innerWidth / 2;
         resize();
 
-        // --- OBSŁUGA EKRANU STARTOWEGO ---
+        // --- OBSŁUGA EKRANÓW (START I GAME OVER) ---
         const startScreen = document.getElementById("startScreen");
+        const gameOverScreen = document.getElementById("gameOverScreen");
         const startButton = document.getElementById("startButton");
+        const restartButton = document.getElementById("restartButton");
 
-        startButton.addEventListener("click", () => {
+        function startGame() {
             startScreen.style.display = "none"; 
+            gameOverScreen.style.display = "none";
+            
+            // Resetowanie statystyk
+            happinessPoints = 0;
+            missedOranges = 0;
+            fallingItems = [];
+            spawnTimer = 0;
+            player.targetX = null;
+            isDragging = false;
+            
+            scoreElement.innerText = happinessPoints;
+            missedCountElement.innerText = missedOranges;
+            
             gameRunning = true; 
             
             requestAnimationFrame((timestamp) => {
                 lastTime = timestamp;
                 gameLoop(timestamp);
             });
+        }
+
+        function gameOver() {
+            gameRunning = false;
+            finalScoreText.innerText = "Puntos obtenidos: " + happinessPoints;
+            gameOverScreen.style.display = "flex";
+        }
+
+        startButton.addEventListener("click", startGame);
+        restartButton.addEventListener("click", startGame);
+
+        // --- STEROWANIE TYLKO PO DOTKNIĘCIU POSTACI ---
+        function isTouchingPlayer(clickX) {
+            return (clickX >= player.x && clickX <= player.x + player.width);
+        }
+
+        document.addEventListener("mousedown", (e) => {
+            if(!gameRunning) return;
+            if (isTouchingPlayer(e.clientX)) {
+                isDragging = true;
+            }
         });
 
-        // --- STEROWANIE ---
+        document.addEventListener("touchstart", (e) => {
+            if(!gameRunning) return;
+            let touchX = e.touches[0].clientX;
+            if (isTouchingPlayer(touchX)) {
+                isDragging = true;
+            }
+        }, {passive: false});
+
+        document.addEventListener("mousemove", (e) => {
+            if(!gameRunning) return;
+            if (isDragging) {
+                player.targetX = e.clientX - (player.width / 2);
+            }
+        });
+
+        document.addEventListener("touchmove", (e) => {
+            if(!gameRunning) return;
+            if (isDragging) {
+                e.preventDefault(); 
+                player.targetX = e.touches[0].clientX - (player.width / 2);
+            }
+        }, {passive: false});
+
+        document.addEventListener("mouseup", () => {
+            isDragging = false;
+            player.targetX = null;
+        });
+        document.addEventListener("touchend", () => {
+            isDragging = false;
+            player.targetX = null;
+        });
+
         document.addEventListener("keydown", (e) => {
             if(!gameRunning) return; 
             if (e.code === "ArrowLeft") player.dx = -player.speed;
@@ -208,35 +303,37 @@
             if (e.code === "ArrowLeft" || e.code === "ArrowRight") player.dx = 0;
         });
 
-        function handlePointerMove(e) {
-            if(!gameRunning) return;
-            e.preventDefault();
-            let clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            player.targetX = clientX - (player.width / 2);
-        }
-        document.addEventListener("mousemove", handlePointerMove);
-        document.addEventListener("touchmove", handlePointerMove, {passive: false});
-        document.addEventListener("touchstart", handlePointerMove, {passive: false});
-        
-        document.addEventListener("touchend", () => { player.targetX = null; });
-        document.addEventListener("mouseup", () => { player.targetX = null; });
 
         // --- LOGIKA GRY ---
-        function spawnOrange() {
-            // ZNACZNIE powiększone pomarańcze (zajmujące od 15 do 25% ekranu szerokości)
+        function spawnItem() {
             let minSize = canvas.width * 0.15; 
             let maxSize = canvas.width * 0.25; 
 
-            // Bezpieczne limity w pikselach (od 75 do 150px)
             minSize = Math.max(Math.min(minSize, 100), 75); 
             maxSize = Math.max(Math.min(maxSize, 150), 100);
 
             const size = minSize + Math.random() * (maxSize - minSize);
             const randomX = Math.random() * (canvas.width - size);
-            
             const speed = canvas.height * 0.006 + (Math.random() * 2); 
             
-            oranges.push({ x: randomX, y: -size, width: size, height: size, speed: speed });
+            // Losowanie: 55% szans na pomarańczę, 45% na listek
+            const isLeaf = Math.random() < 0.45;
+            let itemType = isLeaf ? 'leaf' : 'orange';
+            let specificImage = null;
+
+            if (isLeaf) {
+                specificImage = leafImages[Math.floor(Math.random() * leafImages.length)];
+            }
+
+            fallingItems.push({ 
+                x: randomX, 
+                y: -size, 
+                width: size, 
+                height: size, 
+                speed: speed,
+                type: itemType,
+                img: specificImage
+            });
         }
 
         function update(deltaTime) {
@@ -270,29 +367,48 @@
 
             spawnTimer += deltaTime;
             if (spawnTimer > 800) {
-                spawnOrange();
+                spawnItem();
                 spawnTimer = 0;
             }
 
-            for (let i = 0; i < oranges.length; i++) {
-                let orange = oranges[i];
-                orange.y += orange.speed;
+            for (let i = 0; i < fallingItems.length; i++) {
+                let item = fallingItems[i];
+                item.y += item.speed;
 
-                if (orange.x < player.x + player.width &&
-                    orange.x + orange.width > player.x &&
-                    orange.y < player.y + player.height &&
-                    orange.height + orange.y > player.y) {
+                // Kolizja z graczem
+                if (item.x < player.x + player.width &&
+                    item.x + item.width > player.x &&
+                    item.y < player.y + player.height &&
+                    item.height + item.y > player.y) {
                     
-                    happinessPoints++;
+                    if (item.type === 'orange') {
+                        happinessPoints++;
+                    } else if (item.type === 'leaf') {
+                        happinessPoints--;
+                        if (happinessPoints < 0) happinessPoints = 0;
+                    }
+
                     scoreElement.innerText = happinessPoints;
                     
-                    oranges.splice(i, 1);
+                    fallingItems.splice(i, 1);
                     i--;
                     continue;
                 }
 
-                if (orange.y > canvas.height) {
-                    oranges.splice(i, 1);
+                // Przedmiot spada poza ekran na dole
+                if (item.y > canvas.height) {
+                    // Jeśli to była pomarańcza i uciekła, tracimy życie!
+                    if (item.type === 'orange') {
+                        missedOranges++;
+                        missedCountElement.innerText = missedOranges;
+                        
+                        // Sprawdzanie Game Over
+                        if (missedOranges >= 4) {
+                            gameOver();
+                        }
+                    }
+                    
+                    fallingItems.splice(i, 1);
                     i--;
                 }
             }
@@ -302,6 +418,7 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.imageSmoothingEnabled = false; 
 
+            // Rysowanie tła
             if (backgroundImage.complete && backgroundImage.naturalWidth > 0) {
                 const canvasRatio = canvas.width / canvas.height;
                 const imgRatio = backgroundImage.naturalWidth / backgroundImage.naturalHeight;
@@ -327,8 +444,17 @@
                 ctx.fillRect(0, canvas.height - 40, canvas.width, 40);
             }
 
-            let imageToDraw = player.isMoving ? playerWalkFrames[player.currentFrameIndex] : playerIdleImage;
-            let isLoaded = imageToDraw && imageToDraw.complete && imageToDraw.naturalWidth > 0;
+            // Rysowanie postaci
+            let imageToDraw;
+            let isLoaded;
+
+            if (player.isMoving) {
+                imageToDraw = playerWalkFrames[player.currentFrameIndex];
+                isLoaded = imageToDraw && imageToDraw.complete && imageToDraw.naturalWidth > 0;
+            } else {
+                imageToDraw = playerIdleImage;
+                isLoaded = playerIdleImage.complete && playerIdleImage.naturalWidth > 0;
+            }
 
             if (isLoaded && player.width > 0 && player.height > 0) {
                 ctx.drawImage(imageToDraw, player.x, player.y, player.width, player.height);
@@ -341,18 +467,28 @@
                 ctx.fillRect(player.x + (tempWidth*0.2), player.y, tempWidth * 0.6, tempHeight * 0.3);
             }
 
-            oranges.forEach(orange => {
-                if (orangeImage.complete && orangeImage.naturalWidth > 0) {
-                    ctx.drawImage(orangeImage, orange.x, orange.y, orange.width, orange.height);
-                } else {
-                    ctx.fillStyle = "#FFA500";
-                    ctx.beginPath();
-                    ctx.arc(orange.x + orange.width/2, orange.y + orange.height/2, orange.width/2, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.fillStyle = "#228B22";
-                    ctx.beginPath();
-                    ctx.ellipse(orange.x + orange.width/2, orange.y + 5, 8, 4, 0, 0, Math.PI * 2);
-                    ctx.fill();
+            // Rysowanie spadających przedmiotów
+            fallingItems.forEach(item => {
+                if (item.type === 'orange') {
+                    if (orangeImage.complete && orangeImage.naturalWidth > 0) {
+                        ctx.drawImage(orangeImage, item.x, item.y, item.width, item.height);
+                    } else {
+                        ctx.fillStyle = "#FFA500";
+                        ctx.beginPath();
+                        ctx.arc(item.x + item.width/2, item.y + item.height/2, item.width/2, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                } else if (item.type === 'leaf') {
+                    if (item.img && item.img.complete && item.img.naturalWidth > 0) {
+                        ctx.drawImage(item.img, item.x, item.y, item.width, item.height);
+                    } else {
+                        ctx.fillStyle = "#8B4513"; 
+                        ctx.beginPath();
+                        ctx.moveTo(item.x + item.width/2, item.y);
+                        ctx.lineTo(item.x + item.width, item.y + item.height);
+                        ctx.lineTo(item.x, item.y + item.height);
+                        ctx.fill();
+                    }
                 }
             });
         }
