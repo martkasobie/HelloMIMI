@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -53,20 +53,26 @@
             font-size: 26px;
             color: #ffffff; 
             max-width: 650px;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             font-weight: bold;
             line-height: 1.5;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
-        /* Dodatkowy styl dedykowany dla opisu rankingu */
+        
+        /* POPRAWKA: Blok tekstu dedykowany specjalnie dla rankingu */
         #rankingText {
-            font-size: 22px;
-            font-weight: normal;
+            font-size: 24px;
+            font-weight: bold;
             font-style: italic;
-            color: #FFE4E1;
-            max-width: 550px;
+            color: #FFE4E1; /* Piękny jasnoróżowy kolor na fioletowym tle */
+            max-width: 580px;
+            margin-top: 10px;
             margin-bottom: 40px;
+            line-height: 1.6;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+            display: block; /* Gwarancja, że element jest widoczny */
         }
+
         .gameButton {
             font-size: 32px;
             padding: 15px 50px;
@@ -87,8 +93,8 @@
         @media (max-width: 600px) {
             #ui { font-size: 22px; top: 15px; left: 15px; }
             #missedText { font-size: 18px; }
-            .startMessage { font-size: 22px; padding: 0 10px; margin-bottom: 20px; }
-            #rankingText { font-size: 18px; margin-bottom: 30px; }
+            .startMessage { font-size: 22px; padding: 0 10px; margin-bottom: 15px; }
+            #rankingText { font-size: 19px; max-width: 90%; margin-bottom: 30px; }
             .gameButton { font-size: 24px; padding: 15px 35px; }
         }
     </style>
@@ -101,9 +107,9 @@
     </div>
 
     <div id="gameOverScreen" style="display: none;">
-        <p class="startMessage" style="color: #FFB6C1; font-size: 36px; text-shadow: 2px 2px 0px #000; margin-bottom: 10px;">FIN DEL JUEGO</p>
-        <p class="startMessage" id="finalScoreText" style="margin-bottom: 15px;">Puntos obtenidos: 0</p>
-        <p class="startMessage" id="rankingText"></p>
+        <p class="startMessage" style="color: #FFB6C1; font-size: 38px; text-shadow: 2px 2px 0px #000; margin-bottom: 5px;">FIN DEL JUEGO</p>
+        <p class="startMessage" id="finalScoreText">Puntos obtenidos: 0</p>
+        <div id="rankingText"></div>
         <button id="restartButton" class="gameButton">VOLVER A JUGAR</button>
     </div>
 
@@ -249,7 +255,7 @@
             gameRunning = false;
             finalScoreText.innerText = "Puntos obtenidos: " + happinessPoints;
             
-            // --- SYSTEM RANKINGU PO HISZPAŃSKU ---
+            // AKTUALIZACJA: Logika wstrzykiwania tekstu działa teraz poprawnie z nowym CSS
             let message = "";
             if (happinessPoints < 100) {
                 message = "¡Ánimo! Una pequeña chispa de alegría está por comenzar.";
@@ -257,7 +263,7 @@
                 message = "Media sonrisa tímida. La comisura de los labios tiembla. El personaje ha notado que el mundo no es tan malo.";
             } else if (happinessPoints >= 300 && happinessPoints <= 599) {
                 message = "Sonrisa sincera. La alegría es plena y visible. ¡Los ojos empiezan a brillar!";
-            } else { // 600 i więcej punktów
+            } else { 
                 message = "¡Resplandeces! Eres un sol andante. Una sonrisa de oreja a oreja, y el mundo alrededor empieza a volverse colorido.";
             }
             
