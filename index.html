@@ -39,7 +39,6 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            /* Zmiana na fioletowe, lekko przezroczyste tło */
             background-color: rgba(155, 89, 182, 0.95); 
             display: flex;
             flex-direction: column;
@@ -52,7 +51,6 @@
         }
         .startMessage {
             font-size: 26px;
-            /* Zmiana koloru tekstu na biały, by lepiej wyglądał na fiolecie */
             color: #ffffff; 
             max-width: 650px;
             margin-bottom: 40px;
@@ -63,7 +61,6 @@
         .gameButton {
             font-size: 32px;
             padding: 15px 50px;
-            /* Zmiana na różowy przycisk */
             background-color: #FF69B4; 
             color: white;
             border: 3px solid #fff;
@@ -95,7 +92,7 @@
     </div>
 
     <div id="gameOverScreen" style="display: none;">
-        <p class="startMessage" style="color: #FFB6C1; font-size: 36px; text-shadow: 2px 2px 0px #000;">GAME OVER</p>
+        <p class="startMessage" style="color: #FFB6C1; font-size: 36px; text-shadow: 2px 2px 0px #000;">FIN DEL JUEGO</p>
         <p class="startMessage" id="finalScoreText">Puntos obtenidos: 0</p>
         <button id="restartButton" class="gameButton">VOLVER A JUGAR</button>
     </div>
@@ -183,11 +180,13 @@
                 aspectRatio = playerIdleImage.naturalWidth / playerIdleImage.naturalHeight;
             }
 
-            let newHeight = Math.min(canvas.height * 0.35, 350);
+            // --- ZMIANA: Postać zajmuje do 30% wysokości ekranu, max 350px ---
+            let newHeight = Math.min(canvas.height * 0.30, 350);
             let newWidth = newHeight * aspectRatio;
 
-            if (newWidth > canvas.width * 0.55) {
-                newWidth = canvas.width * 0.55;
+            // --- ZMIANA: Na telefonie postać zajmie max 30% szerokości ekranu (znacznie mniej niż poprzednio) ---
+            if (newWidth > canvas.width * 0.30) {
+                newWidth = canvas.width * 0.30;
                 newHeight = newWidth / aspectRatio;
             }
 
@@ -196,6 +195,7 @@
             player.speed = canvas.width * 0.015; 
 
             if (player.height > 0) {
+                // Postać stoi odrobinę wyżej (5% wysokości ekranu) od dołu
                 player.y = canvas.height - player.height - (canvas.height * 0.05); 
             }
             
@@ -306,11 +306,13 @@
 
         // --- LOGIKA GRY ---
         function spawnItem() {
-            let minSize = canvas.width * 0.15; 
-            let maxSize = canvas.width * 0.25; 
+            // --- ZMIANA: Zmniejszone przedmioty (zajmujące od 8 do 12% szerokości ekranu) ---
+            let minSize = canvas.width * 0.08; 
+            let maxSize = canvas.width * 0.12; 
 
-            minSize = Math.max(Math.min(minSize, 100), 75); 
-            maxSize = Math.max(Math.min(maxSize, 150), 100);
+            // --- ZMIANA: Mniejsze bezpieczne limity w pikselach (od 40 do 80px) ---
+            minSize = Math.max(Math.min(minSize, 60), 40); 
+            maxSize = Math.max(Math.min(maxSize, 100), 60);
 
             const size = minSize + Math.random() * (maxSize - minSize);
             const randomX = Math.random() * (canvas.width - size);
