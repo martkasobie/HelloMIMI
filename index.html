@@ -362,8 +362,8 @@
             
             const speed = canvas.height * 0.0085 + (Math.random() * 3); 
             
-            // ZMIANA: Mniej listków (25% szans). Skoro zabijają na miejscu, musi być więcej pomarańczy
-            const isLeaf = Math.random() < 0.25;
+            // ZMIANA: Zwiększona szansa na listek z 25% na 35%
+            const isLeaf = Math.random() < 0.35;
             let itemType = isLeaf ? 'leaf' : 'orange';
             let specificImage = null;
 
@@ -422,20 +422,17 @@
                 let item = fallingItems[i];
                 item.y += item.speed;
 
-                // --- ZMIANA: ZACIEŚNIONE, UCZCIWE HITBOXY (KOLIZJE) ---
-                // Tworzymy mniejszy, precyzyjny prostokąt kolizji wewnątrz samej postaci (bez pustych pikseli)
-                let px = player.x + (player.width * 0.2); // Ucinamy 20% szerokości po bokach
-                let py = player.y + (player.height * 0.1); // Ucinamy 10% wysokości od góry
-                let pw = player.width * 0.6; // Szerokość do wykrywania stłuczki
+                // --- ZACIEŚNIONE, UCZCIWE HITBOXY ---
+                let px = player.x + (player.width * 0.2); 
+                let py = player.y + (player.height * 0.1); 
+                let pw = player.width * 0.6; 
                 let ph = player.height * 0.8;
 
-                // Precyzyjny hitbox dla pomarańczy/listków
                 let ix = item.x + (item.width * 0.2);
                 let iy = item.y + (item.height * 0.2);
                 let iw = item.width * 0.6;
                 let ih = item.height * 0.6;
 
-                // Sprawdzenie "uczciwej" kolizji wizualnej
                 if (ix < px + pw &&
                     ix + iw > px &&
                     iy < py + ph &&
@@ -448,9 +445,9 @@
                         i--;
                         continue;
                     } else if (item.type === 'leaf') {
-                        // ZMIANA: Dotknięcie listka to NATYCHMIASTOWY Game Over
+                        // Dotknięcie listka to NATYCHMIASTOWY Game Over
                         gameOver();
-                        return; // Przerywa dalsze wykonywanie kodu
+                        return; 
                     }
                 }
 
@@ -460,7 +457,7 @@
                         missedOranges++;
                         missedCountElement.innerText = missedOranges;
                         
-                        // ZMIANA: Game Over dopiero po upuszczeniu 3 pomarańczy
+                        // Game Over po upuszczeniu 3 pomarańczy
                         if (missedOranges >= 3) {
                             gameOver();
                             return;
