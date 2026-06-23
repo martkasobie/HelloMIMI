@@ -53,10 +53,19 @@
             font-size: 26px;
             color: #ffffff; 
             max-width: 650px;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
             font-weight: bold;
             line-height: 1.5;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        /* Dodatkowy styl dedykowany dla opisu rankingu */
+        #rankingText {
+            font-size: 22px;
+            font-weight: normal;
+            font-style: italic;
+            color: #FFE4E1;
+            max-width: 550px;
+            margin-bottom: 40px;
         }
         .gameButton {
             font-size: 32px;
@@ -78,7 +87,8 @@
         @media (max-width: 600px) {
             #ui { font-size: 22px; top: 15px; left: 15px; }
             #missedText { font-size: 18px; }
-            .startMessage { font-size: 22px; padding: 0 10px; }
+            .startMessage { font-size: 22px; padding: 0 10px; margin-bottom: 20px; }
+            #rankingText { font-size: 18px; margin-bottom: 30px; }
             .gameButton { font-size: 24px; padding: 15px 35px; }
         }
     </style>
@@ -91,8 +101,9 @@
     </div>
 
     <div id="gameOverScreen" style="display: none;">
-        <p class="startMessage" style="color: #FFB6C1; font-size: 36px; text-shadow: 2px 2px 0px #000;">FIN DEL JUEGO</p>
-        <p class="startMessage" id="finalScoreText">Puntos obtenidos: 0</p>
+        <p class="startMessage" style="color: #FFB6C1; font-size: 36px; text-shadow: 2px 2px 0px #000; margin-bottom: 10px;">FIN DEL JUEGO</p>
+        <p class="startMessage" id="finalScoreText" style="margin-bottom: 15px;">Puntos obtenidos: 0</p>
+        <p class="startMessage" id="rankingText"></p>
         <button id="restartButton" class="gameButton">VOLVER A JUGAR</button>
     </div>
 
@@ -109,6 +120,7 @@
         const scoreElement = document.getElementById("score");
         const missedCountElement = document.getElementById("missedCount");
         const finalScoreText = document.getElementById("finalScoreText");
+        const rankingText = document.getElementById("rankingText");
 
         let happinessPoints = 0;
         let missedOranges = 0; 
@@ -236,6 +248,20 @@
         function gameOver() {
             gameRunning = false;
             finalScoreText.innerText = "Puntos obtenidos: " + happinessPoints;
+            
+            // --- SYSTEM RANKINGU PO HISZPAŃSKU ---
+            let message = "";
+            if (happinessPoints < 100) {
+                message = "¡Ánimo! Una pequeña chispa de alegría está por comenzar.";
+            } else if (happinessPoints >= 100 && happinessPoints <= 299) {
+                message = "Media sonrisa tímida. La comisura de los labios tiembla. El personaje ha notado que el mundo no es tan malo.";
+            } else if (happinessPoints >= 300 && happinessPoints <= 599) {
+                message = "Sonrisa sincera. La alegría es plena y visible. ¡Los ojos empiezan a brillar!";
+            } else { // 600 i więcej punktów
+                message = "¡Resplandeces! Eres un sol andante. Una sonrisa de oreja a oreja, y el mundo alrededor empieza a volverse colorido.";
+            }
+            
+            rankingText.innerText = message;
             gameOverScreen.style.display = "flex";
         }
 
@@ -309,10 +335,8 @@
             const size = minSize + Math.random() * (maxSize - minSize);
             const randomX = Math.random() * (canvas.width - size);
             
-            // ZMIANA: Zwiększona bazowa i maksymalna prędkość spadania
             const speed = canvas.height * 0.0085 + (Math.random() * 3); 
             
-            // ZMIANA: 60% szans na listek (zamiast 45%) - będzie ich znacznie więcej!
             const isLeaf = Math.random() < 0.60;
             let itemType = isLeaf ? 'leaf' : 'orange';
             let specificImage = null;
@@ -362,7 +386,6 @@
             if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
 
             spawnTimer += deltaTime;
-            // ZMIANA: Zmniejszony czas pomiędzy respawnami (z 800 do 700 ms) - szybsze tempo gry
             if (spawnTimer > 700) {
                 spawnItem();
                 spawnTimer = 0;
@@ -398,7 +421,6 @@
                         missedOranges++;
                         missedCountElement.innerText = missedOranges;
                         
-                        // ZMIANA: Game Over następuje gdy gracz zgubi 2 pomarańcze (zamiast 4)
                         if (missedOranges >= 2) {
                             gameOver();
                         }
