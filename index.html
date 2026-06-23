@@ -275,14 +275,16 @@
             gameRunning = false;
             finalScoreText.innerText = "Puntos obtenidos: " + happinessPoints;
             
+            // --- NOWE PROGI PUNKTOWE ---
             let message = "";
-            if (happinessPoints < 100) {
+            if (happinessPoints <= 60) {
                 message = "¡Ánimo! Una pequeña chispa de alegría está por comenzar.";
-            } else if (happinessPoints >= 100 && happinessPoints <= 299) {
+            } else if (happinessPoints >= 61 && happinessPoints <= 149) {
                 message = "Media sonrisa tímida. La comisura de los labios tiembla. El personaje ha notado que el mundo no es tan malo.";
-            } else if (happinessPoints >= 300 && happinessPoints <= 599) {
+            } else if (happinessPoints >= 150 && happinessPoints <= 300) {
                 message = "Sonrisa sincera. La alegría es plena y visible. ¡Los ojos empiezan a brillar!";
             } else { 
+                // Powyżej 300 punktów
                 message = "¡Resplandeces! Eres un sol andante. Una sonrisa de oreja a oreja, y el mundo alrededor empieza a volverse colorido.";
             }
             
@@ -362,8 +364,7 @@
             
             const speed = canvas.height * 0.0085 + (Math.random() * 3); 
             
-            // ZMIANA: Zwiększona szansa na listek z 25% na 35%
-            const isLeaf = Math.random() < 0.35;
+            const isLeaf = Math.random() < 0.25; // 25% szans na listek
             let itemType = isLeaf ? 'leaf' : 'orange';
             let specificImage = null;
 
@@ -422,7 +423,7 @@
                 let item = fallingItems[i];
                 item.y += item.speed;
 
-                // --- ZACIEŚNIONE, UCZCIWE HITBOXY ---
+                // ZACIEŚNIONE HITBOXY
                 let px = player.x + (player.width * 0.2); 
                 let py = player.y + (player.height * 0.1); 
                 let pw = player.width * 0.6; 
@@ -445,19 +446,16 @@
                         i--;
                         continue;
                     } else if (item.type === 'leaf') {
-                        // Dotknięcie listka to NATYCHMIASTOWY Game Over
                         gameOver();
                         return; 
                     }
                 }
 
-                // Przedmiot spada poza ekran na dole
                 if (item.y > canvas.height) {
                     if (item.type === 'orange') {
                         missedOranges++;
                         missedCountElement.innerText = missedOranges;
                         
-                        // Game Over po upuszczeniu 3 pomarańczy
                         if (missedOranges >= 3) {
                             gameOver();
                             return;
@@ -474,7 +472,6 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.imageSmoothingEnabled = false; 
 
-            // Rysowanie tła
             if (backgroundImage.complete && backgroundImage.naturalWidth > 0) {
                 const canvasRatio = canvas.width / canvas.height;
                 const imgRatio = backgroundImage.naturalWidth / backgroundImage.naturalHeight;
@@ -500,7 +497,6 @@
                 ctx.fillRect(0, canvas.height - 40, canvas.width, 40);
             }
 
-            // Rysowanie postaci
             let imageToDraw;
             let isLoaded;
 
@@ -523,7 +519,6 @@
                 ctx.fillRect(player.x + (tempWidth*0.2), player.y, tempWidth * 0.6, tempHeight * 0.3);
             }
 
-            // Rysowanie spadających przedmiotów
             fallingItems.forEach(item => {
                 if (item.type === 'orange') {
                     if (orangeImage.complete && orangeImage.naturalWidth > 0) {
