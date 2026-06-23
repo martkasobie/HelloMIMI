@@ -70,11 +70,11 @@
             transform: scale(0.95); 
         }
 
-        /* Ulepszenie interfejsu na bardzo wąskich telefonach */
+        /* Większe napisy na telefonach */
         @media (max-width: 600px) {
-            #ui { font-size: 20px; top: 10px; left: 10px; }
-            .startMessage { font-size: 20px; }
-            #startButton { font-size: 26px; padding: 12px 40px; }
+            #ui { font-size: 22px; top: 15px; left: 15px; }
+            .startMessage { font-size: 22px; padding: 0 10px; }
+            #startButton { font-size: 28px; padding: 15px 45px; }
         }
     </style>
 </head>
@@ -124,7 +124,7 @@
             y: 0,
             width: 0,  
             height: 0, 
-            speed: 0, // Prędkość też wyliczymy dynamicznie
+            speed: 0, 
             dx: 0,
             targetX: null,
             currentFrameIndex: 0,
@@ -147,31 +147,26 @@
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
             
-            // Proporcje postaci (domyślnie 0.8 jeśli obrazek się nie załaduje)
             let aspectRatio = 0.8; 
             if (playerIdleImage.complete && playerIdleImage.naturalHeight > 0) {
                 aspectRatio = playerIdleImage.naturalWidth / playerIdleImage.naturalHeight;
             }
 
-            // Postać będzie miała 25% wysokości ekranu, ale maksymalnie 250px
-            let newHeight = Math.min(canvas.height * 0.25, 250);
+            let newHeight = Math.min(canvas.height * 0.30, 250);
             let newWidth = newHeight * aspectRatio;
 
-            // ZABEZPIECZENIE DLA TELEFONÓW (Ekran pionowy)
-            // Postać nie może zajmować więcej niż 25% SZEROKOŚCI ekranu
-            if (newWidth > canvas.width * 0.25) {
-                newWidth = canvas.width * 0.25;
+            if (newWidth > canvas.width * 0.40) {
+                newWidth = canvas.width * 0.40;
                 newHeight = newWidth / aspectRatio;
             }
 
             player.height = newHeight;
             player.width = newWidth;
             
-            // Prędkość postaci zależna od szerokości ekranu
-            player.speed = canvas.width * 0.01; 
+            player.speed = canvas.width * 0.015; 
 
             if (player.height > 0) {
-                player.y = canvas.height - player.height - (canvas.height * 0.05); // Podłoga wyżej na dole
+                player.y = canvas.height - player.height - (canvas.height * 0.05); 
             }
             
             if (player.x + player.width > canvas.width) {
@@ -226,19 +221,16 @@
 
         // --- LOGIKA GRY ---
         function spawnOrange() {
-            // Wielkość pomarańczy inteligentnie dopasowana do ekranu (od 5% do 8% szerokości)
-            let minSize = canvas.width * 0.05;
-            let maxSize = canvas.width * 0.08;
+            let minSize = canvas.width * 0.10; 
+            let maxSize = canvas.width * 0.15; 
 
-            // Granice, żeby owoce nie były za małe ani zbyt ogromne
-            minSize = Math.max(Math.min(minSize, 60), 30); 
-            maxSize = Math.max(Math.min(maxSize, 110), 50);
+            minSize = Math.max(Math.min(minSize, 70), 50); 
+            maxSize = Math.max(Math.min(maxSize, 120), 80);
 
             const size = minSize + Math.random() * (maxSize - minSize);
             const randomX = Math.random() * (canvas.width - size);
             
-            // Prędkość spadania zależy od wysokości ekranu (na telefonie i PC zajmie to podobny czas)
-            const speed = canvas.height * 0.005 + (Math.random() * 2); 
+            const speed = canvas.height * 0.006 + (Math.random() * 2); 
             
             oranges.push({ x: randomX, y: -size, width: size, height: size, speed: speed });
         }
@@ -248,7 +240,10 @@
 
             if (player.targetX !== null) {
                 let distanceToTarget = player.targetX - player.x;
-                player.x += distanceToTarget * 0.15;
+                
+                // --- ZMIANA: Zwiększono mnożnik z 0.15 na 0.40 ---
+                // Postać znacznie szybciej i płynniej reaguje na ruch palca
+                player.x += distanceToTarget * 0.40;
 
                 if (Math.abs(distanceToTarget) > 1) {
                     player.isMoving = true;
