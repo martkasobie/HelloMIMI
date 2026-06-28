@@ -208,6 +208,16 @@
     <canvas id="gameCanvas"></canvas>
 
     <script>
+        // --- KONFIGURACJA KADROWANIA TŁA NA TELEFONY ---
+        // focusX ustala, co widać na ekranie pionowym (0.0 = lewo, 0.5 = środek, 1.0 = prawo)
+        const bgSettings = {
+            "sad2.png": { focusX: 0.5 },    // Środek
+            "japonia.png": { focusX: 0.2 }, // Bardziej na lewo
+            "peru.png": { focusX: 0.8 },    // Bardziej na prawo
+            "zoombie.png": { focusX: 0.5 }  // Środek
+        };
+        let currentBackgroundName = "sad2.png"; // Zmienna śledząca aktualnie wybrane tło
+
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
         const scoreElement = document.getElementById("score");
@@ -234,7 +244,7 @@
         orangeImage.src = "naranja1.png"; 
 
         const backgroundImage = new Image();
-        backgroundImage.src = "sad2.png"; // Domyślne tło
+        backgroundImage.src = currentBackgroundName; 
 
         const playerIdleImage = new Image();
         playerIdleImage.src = "SpriteWHOLE4.png";
@@ -326,6 +336,7 @@
         bgOptions.forEach(option => {
             option.addEventListener("click", function() {
                 const selectedBg = this.getAttribute("data-bg");
+                currentBackgroundName = selectedBg; // Zapamiętanie wybranego tła dla odpowiedniego kadrowania
                 
                 bgOptions.forEach(opt => opt.classList.remove("selected"));
                 
@@ -592,7 +603,14 @@
                 } else {
                     drawHeight = canvas.height;
                     drawWidth = canvas.height * imgRatio; 
-                    offsetX = (canvas.width - drawWidth) / 2; 
+                    
+                    // --- ZASTOSOWANIE KADROWANIA (FOCUS) ZALEŻNIE OD TŁA ---
+                    let focusX = 0.5; // Domyślnie środek
+                    if (bgSettings[currentBackgroundName] !== undefined) {
+                        focusX = bgSettings[currentBackgroundName].focusX;
+                    }
+                    offsetX = (canvas.width - drawWidth) * focusX;
+                    
                     offsetY = canvas.height - drawHeight; 
                 }
 
