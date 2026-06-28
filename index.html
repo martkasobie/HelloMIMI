@@ -178,7 +178,7 @@
     </div>
 
     <div id="gameOverScreen" style="display: none;">
-        <p class="startMessage" style="color: #FFB6C1; font-size: 38px; text-shadow: 2px 2px 0px #000; margin-bottom: 5px; margin-top: 20px;">FIN DEL JUEGO</p>
+        <p class="startMessage" style="color: #FFB6C1; font-size: 38px; text-shadow: 2px 2px 0px #000; margin-bottom: 5px; margin-top: 20px;">GAME OVER!</p>
         <p class="startMessage" id="finalScoreText" style="margin-bottom: 5px;">Puntos obtenidos: 0</p>
         
         <p class="startMessage" id="recordText" style="margin-bottom: 15px; font-size: 22px;"></p>
@@ -449,27 +449,22 @@
 
         // --- LOGIKA GRY ---
         function spawnItem() {
-            // --- ZMIANA: ROZMIARY ZOSTAŁY ROZDZIELONE ---
-            // 1. Definiujemy szansę na liść (dynamiczną)
             let leafChance = 0.10 + (happinessPoints / 150) * 0.35;
             leafChance = Math.min(leafChance, 0.45); 
             const isLeaf = Math.random() < leafChance; 
 
-            let size; // Ta zmienna będzie trzymać ostateczny rozmiar
+            let size; 
 
             if (isLeaf) {
-                // ROZMIAR LIŚCIA (Przywrócony/Większy - ok. 14% szerokości)
                 let leafSizeBase = canvas.width * 0.14; 
-                size = Math.max(Math.min(leafSizeBase, 120), 75); // Limity: 75px do 120px
+                size = Math.max(Math.min(leafSizeBase, 120), 75); 
             } else {
-                // ROZMIAR POMARAŃCZY (Zmniejszony - ok. 9% szerokości)
                 let orangeSizeBase = canvas.width * 0.09; 
-                size = Math.max(Math.min(orangeSizeBase, 80), 50); // Limity: 50px do 80px
+                size = Math.max(Math.min(orangeSizeBase, 80), 50); 
             }
 
             const randomX = Math.random() * (canvas.width - size);
             
-            // DYNAMICZNA PRĘDKOŚĆ (Grawitacja)
             let extraSpeed = Math.min(happinessPoints * 0.02, 3.5); 
             const speed = (canvas.height * 0.006) + (Math.random() * 2.5) + extraSpeed; 
             
@@ -522,7 +517,6 @@
 
             spawnTimer += deltaTime;
             
-            // DYNAMICZNE TEMPO SPAWNOWANIA
             let currentSpawnDelay = 700 - (happinessPoints * 2.5);
             if (currentSpawnDelay < 250) {
                 currentSpawnDelay = 250;
@@ -537,7 +531,6 @@
                 let item = fallingItems[i];
                 item.y += item.speed;
 
-                // ZACIEŚNIONE HITBOXY
                 let px = player.x + (player.width * 0.2); 
                 let py = player.y + (player.height * 0.1); 
                 let pw = player.width * 0.6; 
